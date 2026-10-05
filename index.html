@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ملفاتي الجامعية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#12284a;--mut:#5b6c88;--line:#d9e1ee;--bar:#12284a;--accent:#2f7de1;--soft:#eaf2fd}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1525;--card:#15213a;--ink:#e8eefb;--mut:#9eb0cd;--line:#26365a;--bar:#09111f;--accent:#5b9cf0;--soft:#1b2c4d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 Cairo,Tahoma,"Segoe UI",system-ui,sans-serif;padding-top:env(safe-area-inset-top)}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{background:var(--bar);color:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:19px}
+nav a{margin-inline-start:22px;padding:6px 0;border-bottom:2px solid transparent;opacity:.85}
+nav a.on{border-color:#fff;opacity:1}
+.hero{padding:40px 0 8px}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.3;margin:0 0 10px}
+.hero p{color:var(--mut);max-width:560px;margin:0}
+.search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 14px;margin:28px 0 30px}
+.search input{flex:1;border:0;background:none;font:inherit;color:inherit;padding:14px 0;outline:0}
+.search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--soft)}
+h2{font-size:22px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px}
+.card{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card b{display:block;font-size:17px}
+.meta,.hit{color:var(--mut);font-size:14px}
+.hit{margin-top:2px;color:var(--accent)}
+.card .chev{margin-inline-start:auto;color:var(--mut);transform:scaleX(-1)}
+.back{display:inline-flex;gap:6px;align-items:center;color:var(--accent);margin:30px 0 14px;font-weight:600}
+.files{list-style:none;margin:20px 0 0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.files li+li{border-top:1px solid var(--line)}
+.files a{display:flex;align-items:center;gap:12px;padding:14px 18px}
+.files a:hover{background:var(--soft)}
+.files .dl{margin-inline-start:auto;color:var(--accent);font-weight:600;font-size:14px}
+.empty{color:var(--mut);padding:30px 0}
+footer{border-top:1px solid var(--line);margin-top:56px;padding:26px 0;text-align:center;color:var(--mut);font-size:14px}
+main{min-height:60vh}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="#/"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/></svg>ملفاتي الجامعية</a>
+  <nav><a href="#/" id="nav-home" class="on">المواد</a></nav>
+</div></header>
+
+<main class="wrap" id="app"></main>
+<footer>ملفاتي الجامعية</footer>
+
+<script>
+let SUBJECTS=[]; // loaded from the server; managed in /admin.html
+
+const $=s=>document.querySelector(s), app=$("#app");
+const cnt=n=>n==0?"لا توجد ملفات":n==1?"ملف واحد":n==2?"ملفان":n<=10?n+" ملفات":n+" ملفًا";
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=d=>new Date(d+"T00:00:00").toLocaleDateString("ar-u-nu-latn",{month:"short",day:"numeric",year:"numeric"});
+const folder='<svg width="46" height="38" viewBox="0 0 46 38" aria-hidden="true"><path d="M2 6a4 4 0 014-4h11l5 6h18a4 4 0 014 4v20a4 4 0 01-4 4H6a4 4 0 01-4-4z" fill="var(--accent)"/></svg>';
+const chev='<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+const fileIco='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" aria-hidden="true"><path d="M6 2h8l5 5v15H6z"/><path d="M14 2v5h5"/></svg>';
+
+function home(q=""){
+  q=q.trim().toLowerCase();
+  const cards=SUBJECTS.map(s=>{
+    const hits=q?s.files.filter(f=>f.n.toLowerCase().includes(q)):[];
+    if(q&&!s.name.toLowerCase().includes(q)&&!hits.length)return"";
+    return `<a class="card" href="#/s/${encodeURIComponent(s.name)}">${folder}<div><b>${esc(s.name)}</b>
+      <span class="meta">${cnt(s.files.length)}، آخر تحديث ${fmt(s.date)}</span>
+      ${hits.length?`<div class="hit">عدد الملفات المطابقة: ${hits.length}</div>`:""}</div>${chev}</a>`;
+  }).join("");
+  $("#grid").innerHTML=!SUBJECTS.length?`<p class="empty">لم تتم إضافة مواد بعد.</p>`:cards||`<p class="empty">لا توجد مادة أو ملف يطابق "${esc(q)}". جرّب كلمة أقصر.</p>`;
+}
+
+function route(){
+  const m=location.hash.match(/^#\/s\/(.+)$/);
+  const s=m&&SUBJECTS.find(x=>x.name===decodeURIComponent(m[1]));
+  scrollTo(0,0);
+  if(!s){
+    app.innerHTML=`<section class="hero"><h1>ملفاتك الجامعية</h1><p>حمّل المحاضرات والواجبات وبقية المواد الدراسية لكل مادة.</p></section>
+      <label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" placeholder="ابحث عن مادة أو ملف" aria-label="ابحث عن مادة أو ملف"></label>
+      <h2>موادي</h2><div class="grid" id="grid"></div>`;
+    home(); $("#q").addEventListener("input",e=>home(e.target.value));
+  }else{
+    app.innerHTML=`<a class="back" href="#/">&rarr; كل المواد</a><h1>${esc(s.name)}</h1>
+      <p class="meta">${cnt(s.files.length)}، آخر تحديث ${fmt(s.date)}</p>
+      ${s.files.length?`<ul class="files">${s.files.map(f=>`<li><a href="${f.u}" download>${fileIco}<span dir="auto">${esc(f.n)}</span><span class="dl">تنزيل</span></a></li>`).join("")}</ul>`:`<p class="empty">لا توجد ملفات هنا بعد. تحقق مرة أخرى بعد الرفع القادم.</p>`}`;
+  }
+}
+addEventListener("hashchange",route);
+fetch("api/subjects").then(r=>r.json()).then(d=>{SUBJECTS=d;route()}).catch(()=>{app.innerHTML='<p class="empty">تعذّر تحميل الملفات. أعد تحميل الصفحة.</p>'});
+</script>
+</body>
+</html>
